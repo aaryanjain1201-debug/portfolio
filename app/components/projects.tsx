@@ -2,6 +2,7 @@
 
 import { motion, useInView } from "framer-motion";
 import Image from "next/image";
+import Link from "next/link";
 import { useRef, useState } from "react";
 import { ExternalLink } from "lucide-react";
 import { projects } from "@/data/projects";
@@ -40,10 +41,8 @@ function ProjectCard({ project, index }: { project: typeof projects[0]; index: n
         }}
       />
 
-      <a
-        href={project.link}
-        target="_blank"
-        rel="noopener noreferrer"
+      <Link
+        href={`/projects/${project.id}`}
         className="block"
       >
         <div className="relative aspect-[16/10] overflow-hidden">
@@ -77,7 +76,7 @@ function ProjectCard({ project, index }: { project: typeof projects[0]; index: n
             ))}
           </div>
         </div>
-      </a>
+      </Link>
     </motion.div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from "react";
 import { projects as defaultProjects, Project } from "@/data/projects";
 import { videos as defaultVideos } from "@/data/videos";
 import { skills as defaultSkills, SkillCategory } from "@/data/skills";
@@ -37,6 +37,7 @@ interface DataContextType {
   deleteSkill: (title: string) => void;
   updateSite: (s: Partial<SiteData>) => void;
   resetToDefaults: () => void;
+  loading: boolean;
 }
 
 const DataContext = createContext<DataContextType | null>(null);
@@ -46,27 +47,60 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [videos, setVideos] = useState<typeof defaultVideos>(defaultVideos);
   const [skills, setSkills] = useState<SkillCategory[]>(defaultSkills);
   const [site, setSite] = useState<SiteData>(defaultSite);
-  const [loaded, setLoaded] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const p = localStorage.getItem("admin_projects");
-    const v = localStorage.getItem("admin_videos");
-    const s = localStorage.getItem("admin_skills");
-    const d = localStorage.getItem("admin_site");
-    if (p) setProjects(JSON.parse(p));
-    if (v) setVideos(JSON.parse(v));
-    if (s) setSkills(JSON.parse(s));
-    if (d) setSite(JSON.parse(d));
-    setLoaded(true);
+  const saveToAPI = useCallback(async (data: { projects: Project[]; videos: typeof defaultVideos; skills: SkillCategory[]; site: SiteData }) => {
+    try {
+      await fetch("/api/data", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+    } catch (e) {
+      console.error("Failed to save to API:", e);
+    }
   }, []);
 
   useEffect(() => {
-    if (!loaded) return;
+    const load = async () => {
+      // Try API first
+      try {
+        const res = await fetch("/api/data");
+        if (res.ok) {
+          const data = await res.json();
+          if (data && Object.keys(data).length > 0) {
+            if (data.projects) setProjects(data.projects);
+            if (data.videos) setVideos(data.videos);
+            if (data.skills) setSkills(data.skills);
+            if (data.site) setSite(data.site);
+            setLoading(false);
+            return;
+          }
+        }
+      } catch (e) {}
+
+      // Fallback to localStorage
+      const p = localStorage.getItem("admin_projects");
+      const v = localStorage.getItem("admin_videos");
+      const s = localStorage.getItem("admin_skills");
+      const d = localStorage.getItem("admin_site");
+      if (p) setProjects(JSON.parse(p));
+      if (v) setVideos(JSON.parse(v));
+      if (s) setSkills(JSON.parse(s));
+      if (d) setSite(JSON.parse(d));
+      setLoading(false);
+    };
+    load();
+  }, []);
+
+  useEffect(() => {
+    if (loading) return;
     localStorage.setItem("admin_projects", JSON.stringify(projects));
     localStorage.setItem("admin_videos", JSON.stringify(videos));
     localStorage.setItem("admin_skills", JSON.stringify(skills));
     localStorage.setItem("admin_site", JSON.stringify(site));
-  }, [projects, videos, skills, site, loaded]);
+    saveToAPI({ projects, videos, skills, site });
+  }, [projects, videos, skills, site, loading, saveToAPI]);
 
   const addProject = (p: Project) => setProjects((prev) => [...prev, { ...p, id: Date.now().toString() }]);
   const updateProject = (id: string, p: Partial<Project>) =>
@@ -96,7 +130,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   return (
     <DataContext.Provider
       value={{
-        projects, videos, skills, site,
+        projects, videos, skills, site, loading,
         addProject, updateProject, deleteProject,
         addVideo, updateVideo, deleteVideo,
         addSkill, updateSkill, deleteSkill,

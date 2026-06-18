@@ -6,42 +6,51 @@ import { Project } from "@/data/projects";
 import { Plus, Pencil, Trash2, X, ExternalLink } from "lucide-react";
 import Image from "next/image";
 
-const emptyProject: Omit<Project, "id"> = {
-  title: "",
-  description: "",
-  image: "",
-  link: "",
-  tags: [],
-};
-
 export default function AdminProjects() {
   const { projects, addProject, updateProject, deleteProject } = useData();
   const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState<Project | null>(null);
-  const [form, setForm] = useState(emptyProject);
+  const [editing, setEditing] = useState<string | null>(null);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [image, setImage] = useState("");
+  const [link, setLink] = useState("");
+  const [tags, setTags] = useState("");
 
   const openAdd = () => {
     setEditing(null);
-    setForm(emptyProject);
+    setTitle("");
+    setDescription("");
+    setImage("");
+    setLink("");
+    setTags("");
     setShowForm(true);
   };
 
   const openEdit = (p: Project) => {
-    setEditing(p);
-    setForm({ ...p });
+    setEditing(p.id);
+    setTitle(p.title);
+    setDescription(p.description);
+    setImage(p.image);
+    setLink(p.link);
+    setTags(p.tags.join(", "));
     setShowForm(true);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const tagList = tags.split(",").map((t) => t.trim()).filter(Boolean);
     if (editing) {
-      updateProject(editing.id, form);
+      updateProject(editing, { title, description, image, link, tags: tagList });
     } else {
-      addProject({ ...form, id: Date.now().toString() });
+      addProject({ id: Date.now().toString(), title, description, image, link, tags: tagList });
     }
     setShowForm(false);
     setEditing(null);
-    setForm(emptyProject);
+    setTitle("");
+    setDescription("");
+    setImage("");
+    setLink("");
+    setTags("");
   };
 
   const handleDelete = (id: string) => {
@@ -65,7 +74,7 @@ export default function AdminProjects() {
 
       {showForm && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm">
-          <div className="w-full max-w-lg rounded-2xl border border-white/10 bg-[#111] p-6">
+          <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl border border-white/10 bg-[#111] p-6">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-bold">{editing ? "Edit Project" : "Add Project"}</h2>
               <button onClick={() => setShowForm(false)} className="text-white/50 hover:text-white">
@@ -74,11 +83,12 @@ export default function AdminProjects() {
             </div>
             <form onSubmit={handleSubmit} className="mt-6 space-y-4">
               <div>
-                <label className="mb-1 block text-sm text-white/60">Title</label>
+                <label className="mb-1 block text-sm text-white/60">Project Title</label>
                 <input
                   required
-                  value={form.title}
-                  onChange={(e) => setForm({ ...form, title: e.target.value })}
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="e.g. Red Bull CGI Advertisement"
                   className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none focus:border-gold"
                 />
               </div>
@@ -86,9 +96,10 @@ export default function AdminProjects() {
                 <label className="mb-1 block text-sm text-white/60">Description</label>
                 <textarea
                   required
-                  value={form.description}
-                  onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
                   rows={3}
+                  placeholder="Brief description of the project"
                   className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none focus:border-gold"
                 />
               </div>
@@ -96,27 +107,33 @@ export default function AdminProjects() {
                 <label className="mb-1 block text-sm text-white/60">Image URL</label>
                 <input
                   required
-                  value={form.image}
-                  onChange={(e) => setForm({ ...form, image: e.target.value })}
+                  value={image}
+                  onChange={(e) => setImage(e.target.value)}
+                  placeholder="Paste image URL (ArtStation, Imgur, etc.)"
                   className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none focus:border-gold"
                 />
+                {image && (
+                  <div className="mt-2 relative h-20 w-32 overflow-hidden rounded-lg">
+                    <Image src={image} alt="Preview" fill className="object-cover" sizes="128px" />
+                  </div>
+                )}
               </div>
               <div>
                 <label className="mb-1 block text-sm text-white/60">Project Link</label>
                 <input
                   required
-                  value={form.link}
-                  onChange={(e) => setForm({ ...form, link: e.target.value })}
+                  value={link}
+                  onChange={(e) => setLink(e.target.value)}
+                  placeholder="ArtStation, Behance, or live demo URL"
                   className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none focus:border-gold"
                 />
               </div>
               <div>
                 <label className="mb-1 block text-sm text-white/60">Tags (comma separated)</label>
                 <input
-                  value={form.tags.join(", ")}
-                  onChange={(e) =>
-                    setForm({ ...form, tags: e.target.value.split(",").map((t) => t.trim()).filter(Boolean) })
-                  }
+                  value={tags}
+                  onChange={(e) => setTags(e.target.value)}
+                  placeholder="e.g. 3D, CGI, Blender"
                   className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none focus:border-gold"
                 />
               </div>

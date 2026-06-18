@@ -2,43 +2,65 @@
 
 import { useState } from "react";
 import { useData } from "@/app/providers";
-import { Plus, Pencil, Trash2, X, Play } from "lucide-react";
-
-const emptyVideo = {
-  id: "",
-  title: "",
-  thumbnail: "",
-  category: "",
-};
+import { Plus, Pencil, Trash2, X, Play, LinkIcon } from "lucide-react";
 
 export default function AdminVideos() {
   const { videos, addVideo, updateVideo, deleteVideo } = useData();
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
-  const [form, setForm] = useState(emptyVideo);
+  const [title, setTitle] = useState("");
+  const [videoUrl, setVideoUrl] = useState("");
+  const [category, setCategory] = useState("");
+
+  const extractVideoId = (url: string): string => {
+    const trimmed = url.trim();
+    if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) return trimmed;
+    const patterns = [
+      /youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/,
+      /youtu\.be\/([a-zA-Z0-9_-]{11})/,
+      /youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/,
+      /youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/,
+    ];
+    for (const p of patterns) {
+      const m = trimmed.match(p);
+      if (m) return m[1];
+    }
+    return trimmed;
+  };
 
   const openAdd = () => {
     setEditing(null);
-    setForm({ ...emptyVideo, id: Date.now().toString() });
+    setTitle("");
+    setVideoUrl("");
+    setCategory("");
     setShowForm(true);
   };
 
   const openEdit = (v: typeof videos[0]) => {
     setEditing(v.id);
-    setForm({ ...v });
+    setTitle(v.title);
+    setVideoUrl(v.id);
+    setCategory(v.category);
     setShowForm(true);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const videoId = extractVideoId(videoUrl);
+    if (!videoId || videoId.length < 5) {
+      alert("Please enter a valid YouTube URL or Video ID");
+      return;
+    }
     if (editing) {
-      updateVideo(editing, form);
+      updateVideo(editing, { id: videoId, title, category });
     } else {
-      addVideo({ ...form, id: Date.now().toString() });
+      addVideo({ id: videoId, title, category, thumbnail: "" });
     }
     setShowForm(false);
     setEditing(null);
-    setForm(emptyVideo);
+    setTitle("");
+    setVideoUrl("");
+    setCategory("");
   };
 
   const handleDelete = (id: string) => {
@@ -71,32 +93,38 @@ export default function AdminVideos() {
             </div>
             <form onSubmit={handleSubmit} className="mt-6 space-y-4">
               <div>
-                <label className="mb-1 block text-sm text-white/60">Title</label>
+                <label className="mb-1 block text-sm text-white/60">Video Title</label>
                 <input
                   required
-                  value={form.title}
-                  onChange={(e) => setForm({ ...form, title: e.target.value })}
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="e.g. 3D Shoe Product Animation"
                   className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none focus:border-gold"
                 />
               </div>
               <div>
-                <label className="mb-1 block text-sm text-white/60">YouTube Video ID</label>
-                <input
-                  required
-                  value={form.id}
-                  onChange={(e) => setForm({ ...form, id: e.target.value })}
-                  placeholder="e.g. f_jFNT7AS0I"
-                  className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none focus:border-gold"
-                />
-                <p className="mt-1 text-xs text-white/30">From youtube.com/watch?v=VIDEO_ID</p>
+                <label className="mb-1 block text-sm text-white/60">YouTube Link or Video ID</label>
+                <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 focus-within:border-gold">
+                  <LinkIcon size={16} className="shrink-0 text-white/30" />
+                  <input
+                    required
+                    value={videoUrl}
+                    onChange={(e) => setVideoUrl(e.target.value)}
+                    placeholder="Paste YouTube URL or Video ID"
+                    className="w-full bg-transparent text-sm text-white outline-none placeholder:text-white/30"
+                  />
+                </div>
+                <p className="mt-1.5 text-xs text-white/30">
+                  Paste full URL like <span className="text-gold/60">youtube.com/watch?v=ABC123</span> or just ID <span className="text-gold/60">ABC123</span>
+                </p>
               </div>
               <div>
                 <label className="mb-1 block text-sm text-white/60">Category</label>
                 <input
                   required
-                  value={form.category}
-                  onChange={(e) => setForm({ ...form, category: e.target.value })}
-                  placeholder="e.g. CGI Product"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  placeholder="e.g. CGI Product, Motion Graphics, 3D Animation"
                   className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none focus:border-gold"
                 />
               </div>
@@ -131,6 +159,9 @@ export default function AdminVideos() {
                 src={`https://i.ytimg.com/vi/${v.id}/maxresdefault.jpg`}
                 alt={v.title}
                 className="h-full w-full object-cover"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = `https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`;
+                }}
               />
               <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition group-hover:opacity-100">
                 <Play size={32} className="text-gold" />
@@ -141,6 +172,7 @@ export default function AdminVideos() {
                 {v.category}
               </span>
               <h3 className="mt-2 truncate font-bold">{v.title}</h3>
+              <p className="mt-1 text-xs text-white/30 font-mono">{v.id}</p>
               <div className="mt-3 flex gap-2">
                 <button
                   onClick={() => openEdit(v)}

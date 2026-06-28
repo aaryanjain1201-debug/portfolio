@@ -1,8 +1,8 @@
 "use client";
 
 import { motion, useInView } from "framer-motion";
-import { useRef } from "react";
-import { Mail, ArrowUpRight } from "lucide-react";
+import { useRef, useState } from "react";
+import { Mail, ArrowUpRight, Send } from "lucide-react";
 import { siteData } from "@/data/site";
 import { MagneticButton } from "./magnetic-button";
 
@@ -64,6 +64,19 @@ const socials: SocialLink[] = [
 export function Contact() {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const [formState, setFormState] = useState({ name: "", email: "", message: "" });
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    window.open(
+      `mailto:${siteData.email}?subject=Portfolio Inquiry from ${formState.name}&body=${encodeURIComponent(formState.message)}%0A%0AFrom: ${formState.name} (${formState.email})`,
+      "_blank"
+    );
+    setSubmitted(true);
+    setTimeout(() => setSubmitted(false), 3000);
+    setFormState({ name: "", email: "", message: "" });
+  };
 
   return (
     <section id="contact" className="relative px-6 py-32">
@@ -71,53 +84,137 @@ export function Contact() {
         <div className="h-[500px] w-[500px] rounded-full bg-gold/5 blur-[150px]" />
       </div>
 
-      <div className="relative mx-auto max-w-3xl text-center">
+      <div className="relative mx-auto max-w-5xl">
         <motion.div
           ref={ref}
           initial={{ opacity: 0, y: 40 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8 }}
         >
-          <h2 className="text-4xl font-extrabold sm:text-5xl lg:text-6xl">
-            Let&apos;s Create
-            <br />
-            <span className="bg-gradient-to-r from-gold via-amber-300 to-gold bg-clip-text text-transparent">
-              Something Amazing
-            </span>
-          </h2>
-          <p className="mx-auto mt-6 max-w-lg text-white/50">
-            Available for freelance projects, collaborations and studio
-            opportunities.
-          </p>
+          <div className="text-center">
+            <h2 className="font-heading text-4xl font-light tracking-[0.05em] sm:text-5xl lg:text-6xl">
+              Let&apos;s Create
+              <br />
+              <span className="text-gradient">Something Amazing</span>
+            </h2>
+            <p className="mx-auto mt-6 max-w-lg text-white/50">
+              Available for freelance projects, collaborations and studio opportunities.
+            </p>
+          </div>
 
-          <MagneticButton
-            href={`mailto:${siteData.email}`}
-            className="group mt-10 inline-flex items-center gap-3 rounded-full bg-gold px-10 py-5 text-base font-bold text-black transition-all hover:shadow-[0_0_50px_rgba(212,175,55,0.4)]"
-          >
-            <Mail size={20} />
-            Get In Touch
-            <ArrowUpRight
-              size={20}
-              className="transition-transform group-hover:translate-x-1 group-hover:-translate-y-1"
-            />
-          </MagneticButton>
+          <div className="mt-14 grid gap-8 lg:grid-cols-2">
+            {/* Contact Form */}
+            <motion.form
+              onSubmit={handleSubmit}
+              initial={{ opacity: 0, x: -30 }}
+              animate={isInView ? { opacity: 1, x: 0 } : {}}
+              transition={{ delay: 0.3, duration: 0.7 }}
+              className="rounded-2xl border border-white/5 bg-[#111827]/70 p-8"
+            >
+              <h3 className="font-heading text-lg font-bold">Send a Message</h3>
+              <p className="mt-1 text-sm text-white/40">I&apos;ll get back to you within 24 hours</p>
 
-          <div className="mt-12 flex items-center justify-center gap-4">
-            {socials.map((social) => {
-              const Icon = social.icon;
-              return (
-                <a
-                  key={social.label}
-                  href={social.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex h-12 w-12 items-center justify-center rounded-full border border-white/10 text-white/50 transition-all hover:border-gold/50 hover:text-gold hover:shadow-[0_0_20px_rgba(212,175,55,0.2)]"
-                  title={social.label}
+              <div className="mt-6 space-y-4">
+                <div>
+                  <label className="mb-1 block text-sm text-white/60">Name</label>
+                  <input
+                    required
+                    value={formState.name}
+                    onChange={(e) => setFormState({ ...formState, name: e.target.value })}
+                    placeholder="Your name"
+                    className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition-colors focus:border-gold"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm text-white/60">Email</label>
+                  <input
+                    required
+                    type="email"
+                    value={formState.email}
+                    onChange={(e) => setFormState({ ...formState, email: e.target.value })}
+                    placeholder="you@example.com"
+                    className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition-colors focus:border-gold"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm text-white/60">Message</label>
+                  <textarea
+                    required
+                    value={formState.message}
+                    onChange={(e) => setFormState({ ...formState, message: e.target.value })}
+                    rows={4}
+                    placeholder="Tell me about your project..."
+                    className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition-colors focus:border-gold"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-gold py-3 text-sm font-bold text-black transition-all hover:shadow-[0_0_30px_rgba(0,217,255,0.3)]"
                 >
-                  <Icon />
-                </a>
-              );
-            })}
+                  {submitted ? "Sent!" : "Send Message"}
+                  <Send size={14} />
+                </button>
+              </div>
+            </motion.form>
+
+            {/* Calendly + Contact Info */}
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              animate={isInView ? { opacity: 1, x: 0 } : {}}
+              transition={{ delay: 0.4, duration: 0.7 }}
+              className="space-y-6"
+            >
+              {/* Calendly embed placeholder */}
+              <div className="rounded-2xl border border-white/5 bg-[#111827]/70 p-8">
+                <h3 className="font-heading text-lg font-bold">Book a Call</h3>
+                <p className="mt-1 text-sm text-white/40">Schedule a free 15-minute consultation</p>
+                <div className="mt-4 flex h-48 items-center justify-center rounded-xl border border-dashed border-white/10 bg-white/[0.02]">
+                  <div className="text-center">
+                    <p className="text-sm text-white/30">Calendly embed goes here</p>
+                    <a
+                      href="https://calendly.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-2 inline-flex items-center gap-1 text-xs text-gold hover:underline"
+                    >
+                      Open Calendly <ArrowUpRight size={10} />
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              {/* Quick CTA */}
+              <MagneticButton
+                href={`mailto:${siteData.email}`}
+                className="group flex w-full items-center justify-center gap-3 rounded-2xl border border-white/5 bg-[#111827]/70 p-6 transition-all duration-500 hover:border-gold/30 hover:shadow-[0_0_30px_rgba(0,217,255,0.1)]"
+              >
+                <Mail size={20} className="text-gold" />
+                <div className="text-left">
+                  <div className="text-sm font-bold">Quick Email</div>
+                  <div className="text-xs text-white/40">{siteData.email}</div>
+                </div>
+                <ArrowUpRight size={16} className="ml-auto text-white/30 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
+              </MagneticButton>
+
+              {/* Socials */}
+              <div className="flex items-center justify-center gap-4">
+                {socials.map((social) => {
+                  const Icon = social.icon;
+                  return (
+                    <a
+                      key={social.label}
+                      href={social.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex h-12 w-12 items-center justify-center rounded-full border border-white/10 text-white/50 transition-all hover:border-gold/50 hover:text-gold hover:shadow-[0_0_20px_rgba(0,217,255,0.2)]"
+                      title={social.label}
+                    >
+                      <Icon />
+                    </a>
+                  );
+                })}
+              </div>
+            </motion.div>
           </div>
         </motion.div>
       </div>

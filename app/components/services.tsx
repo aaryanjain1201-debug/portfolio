@@ -15,7 +15,7 @@ function ServiceCard({ service, index }: { service: typeof services[0]; index: n
       initial={{ opacity: 0, y: 50 }}
       animate={isInView ? { opacity: 1, y: 0 } : {}}
       transition={{ delay: index * 0.1, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-      className="group relative overflow-hidden rounded-2xl bg-neutral-900/50 p-8 border border-white/5 transition-all duration-500 hover:border-gold/30 hover:bg-neutral-900"
+      className="group relative overflow-hidden rounded-2xl bg-[#111827]/50 p-8 border border-white/5 transition-all duration-500 hover:border-gold/30 hover:bg-[#111827]"
     >
       {/* Background glow */}
       <div className="absolute -right-16 -top-16 h-32 w-32 rounded-full bg-gold/5 blur-3xl transition-all duration-700 group-hover:scale-150 group-hover:bg-gold/10" />
@@ -63,10 +63,10 @@ export function Services() {
           transition={{ duration: 0.7 }}
           className="text-center"
         >
-          <h2 className="mb-3 text-3xl font-extrabold sm:text-4xl">
+          <h2 className="mb-3 font-heading text-3xl font-light tracking-[0.1em] sm:text-4xl">
             Services
           </h2>
-          <div className="mx-auto mb-6 h-1 w-20 rounded-full bg-gradient-to-r from-gold to-amber-300" />
+          <div className="mx-auto mb-6 h-1 w-20 rounded-full bg-gradient-to-r from-gold to-accent" />
           <p className="mx-auto max-w-2xl text-white/50">
             Premium 2D & 3D Animation, CGI, and Visual Storytelling for Brands and Businesses.
           </p>

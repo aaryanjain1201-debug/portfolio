@@ -74,7 +74,7 @@ export default function AdminProjects() {
 
       {showForm && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm">
-          <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl border border-white/10 bg-[#111] p-6">
+          <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl border border-white/10 bg-[#111827] p-6">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-bold">{editing ? "Edit Project" : "Add Project"}</h2>
               <button onClick={() => setShowForm(false)} className="text-white/50 hover:text-white">

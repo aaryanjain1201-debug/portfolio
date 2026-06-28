@@ -12,4 +12,9 @@ export const siteData = {
     linkedin: "#",
     twitter: "#",
   },
+  hinglish: {
+    tagline: "Dreams ko reality mein badalna — yahi mera kaam hai.",
+    aboutIntro: "Main hoon Arihant — AI Content Creator, 3D Artist aur Motion Designer. Mere liye animation sirf frames nahi, ek kahani hai jo screen pe jaanti hai.",
+    cta: "Agar tumhara brand dikhna chahta hai duniya ke saamne — toh baat karte hain.",
+  },
 };

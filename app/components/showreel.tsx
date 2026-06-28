@@ -18,15 +18,15 @@ export function Showreel() {
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.7 }}
         >
-          <h2 className="mb-3 text-3xl font-extrabold sm:text-4xl">Showreel</h2>
-          <div className="mb-12 h-1 w-20 rounded-full bg-gradient-to-r from-gold to-amber-300" />
+          <h2 className="mb-3 font-heading text-3xl font-light tracking-[0.1em] sm:text-4xl">Showreel</h2>
+          <div className="mb-12 h-1 w-20 rounded-full bg-gradient-to-r from-gold to-accent" />
         </motion.div>
 
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ delay: 0.2, duration: 0.8 }}
-          className="group relative overflow-hidden rounded-2xl border border-white/5 bg-neutral-900"
+          className="group relative overflow-hidden rounded-2xl border border-white/5 bg-[#111827]"
         >
           <div className="relative aspect-video">
             <img
@@ -41,7 +41,7 @@ export function Showreel() {
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setIsPlaying(true)}
-                className="flex h-20 w-20 cursor-pointer items-center justify-center rounded-full bg-gold/90 text-black opacity-0 transition-all duration-500 group-hover:opacity-100 group-hover:scale-100 scale-75 hover:shadow-[0_0_40px_rgba(212,175,55,0.4)]"
+                className="flex h-20 w-20 cursor-pointer items-center justify-center rounded-full bg-gold/90 text-black opacity-0 transition-all duration-500 group-hover:opacity-100 group-hover:scale-100 scale-75 hover:shadow-[0_0_40px_rgba(0,217,255,0.4)]"
               >
                 <Play size={32} className="ml-1" />
               </motion.div>

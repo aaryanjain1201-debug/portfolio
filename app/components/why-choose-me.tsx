@@ -50,10 +50,10 @@ export function WhyChooseMe() {
           transition={{ duration: 0.7 }}
           className="text-center"
         >
-          <h2 className="mb-3 text-3xl font-extrabold sm:text-4xl">
+          <h2 className="mb-3 font-heading text-3xl font-light tracking-[0.1em] sm:text-4xl">
             Why Choose Me
           </h2>
-          <div className="mx-auto mb-6 h-1 w-20 rounded-full bg-gradient-to-r from-gold to-amber-300" />
+          <div className="mx-auto mb-6 h-1 w-20 rounded-full bg-gradient-to-r from-gold to-accent" />
           <p className="mx-auto max-w-2xl text-white/50">
             Good work comes from clear communication and steady teamwork.
           </p>
@@ -68,7 +68,7 @@ export function WhyChooseMe() {
                 initial={{ opacity: 0, y: 40 }}
                 animate={isInView ? { opacity: 1, y: 0 } : {}}
                 transition={{ delay: i * 0.1, duration: 0.6 }}
-                className="group relative rounded-2xl bg-neutral-900/50 p-8 text-center border border-white/5 transition-all duration-500 hover:border-gold/30"
+                className="group relative rounded-2xl bg-[#111827]/50 p-8 text-center border border-white/5 transition-all duration-500 hover:border-gold/30"
               >
                 <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-gold/10 text-gold transition-all duration-500 group-hover:bg-gold/20 group-hover:scale-110">
                   <Icon size={26} />

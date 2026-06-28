@@ -31,12 +31,13 @@ export default function AdminLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-[#0a0a0a]">
+    <div className="flex min-h-screen" style={{ background: "#0A0E27" }}>
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 border-r border-white/5 bg-[#111] transition-transform duration-300 lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 border-r border-white/5 transition-transform duration-300 lg:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
+        style={{ background: "#111827" }}
       >
         <div className="flex h-full flex-col">
           {/* Logo */}
@@ -89,7 +90,7 @@ export default function AdminLayout({
       </aside>
 
       {/* Mobile header */}
-      <div className="fixed top-0 left-0 right-0 z-40 flex items-center gap-4 border-b border-white/5 bg-[#111] px-4 py-3 lg:hidden">
+      <div className="fixed top-0 left-0 right-0 z-40 flex items-center gap-4 border-b border-white/5 px-4 py-3 lg:hidden" style={{ background: "#111827" }}>
         <button onClick={() => setSidebarOpen(true)} className="text-white/70">
           <Menu size={24} />
         </button>

@@ -50,7 +50,7 @@ export default function AdminDashboard() {
             <Link
               key={card.href}
               href={card.href}
-              className="group rounded-2xl border border-white/5 bg-neutral-900 p-6 transition-all hover:border-gold/30 hover:shadow-[0_0_30px_rgba(212,175,55,0.1)]"
+              className="group rounded-2xl border border-white/5 bg-[#111827] p-6 transition-all hover:border-gold/30 hover:shadow-[0_0_30px_rgba(0,217,255,0.1)]"
             >
               <div className={`flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${card.color}`}>
                 <Icon size={22} className="text-white/80" />
@@ -64,7 +64,7 @@ export default function AdminDashboard() {
         })}
       </div>
 
-      <div className="mt-10 rounded-2xl border border-white/5 bg-neutral-900 p-6">
+      <div className="mt-10 rounded-2xl border border-white/5 bg-[#111827] p-6">
         <h2 className="text-lg font-bold">Quick Actions</h2>
         <div className="mt-4 flex flex-wrap gap-3">
           <Link

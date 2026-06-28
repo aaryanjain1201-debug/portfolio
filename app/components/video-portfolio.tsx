@@ -3,18 +3,17 @@
 import { motion, useInView } from "framer-motion";
 import { useRef, useState } from "react";
 import { Play, X } from "lucide-react";
-import { videos } from "@/data/videos";
-
-const categories = ["All", ...new Set(videos.map((v) => v.category))];
+import { useData } from "@/app/providers";
+import { getDriveVideoEmbed } from "@/lib/video-utils";
 
 function VideoCard({
   video,
   index,
   onPlay,
 }: {
-  video: typeof videos[0];
+  video: { id: string; title: string; thumbnail: string; category: string; source?: string };
   index: number;
-  onPlay: (id: string) => void;
+  onPlay: (id: string, source?: string) => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-50px" });
@@ -26,7 +25,7 @@ function VideoCard({
       animate={isInView ? { opacity: 1, y: 0 } : {}}
       transition={{ delay: index * 0.08, duration: 0.6 }}
       className="group relative cursor-pointer overflow-hidden rounded-2xl border border-white/5"
-      onClick={() => onPlay(video.id)}
+      onClick={() => onPlay(video.id, video.source)}
     >
       <div className="relative aspect-video">
         <img
@@ -48,6 +47,12 @@ function VideoCard({
           </span>
           <h3 className="text-sm font-bold">{video.title}</h3>
         </div>
+
+        {video.source === "drive" && (
+          <span className="absolute top-2 right-2 rounded-full bg-blue-500/90 px-2 py-0.5 text-[10px] font-bold text-white">
+            Drive
+          </span>
+        )}
       </div>
     </motion.div>
   );
@@ -56,8 +61,11 @@ function VideoCard({
 export function VideoPortfolio() {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
-  const [playingVideo, setPlayingVideo] = useState<string | null>(null);
+  const { videos } = useData();
+  const [playingVideo, setPlayingVideo] = useState<{ id: string; source?: string } | null>(null);
   const [activeCategory, setActiveCategory] = useState("All");
+
+  const categories = ["All", ...new Set(videos.map((v) => v.category))];
 
   const filteredVideos =
     activeCategory === "All"
@@ -74,16 +82,15 @@ export function VideoPortfolio() {
           transition={{ duration: 0.7 }}
           className="text-center"
         >
-          <h2 className="mb-3 text-3xl font-extrabold sm:text-4xl">
+          <h2 className="mb-3 font-heading text-3xl font-light tracking-[0.1em] sm:text-4xl">
             Video Portfolio
           </h2>
-          <div className="mx-auto mb-6 h-1 w-20 rounded-full bg-gradient-to-r from-gold to-amber-300" />
+          <div className="mx-auto mb-6 h-1 w-20 rounded-full bg-gradient-to-r from-gold to-accent" />
           <p className="mx-auto max-w-2xl text-white/50">
             Watch our latest animation and CGI projects
           </p>
         </motion.div>
 
-        {/* Category Filter */}
         <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
           {categories.map((cat) => (
             <button
@@ -106,13 +113,12 @@ export function VideoPortfolio() {
               key={video.id}
               video={video}
               index={i}
-              onPlay={setPlayingVideo}
+              onPlay={(id, source) => setPlayingVideo({ id, source })}
             />
           ))}
         </div>
       </div>
 
-      {/* Video Modal */}
       {playingVideo && (
         <motion.div
           initial={{ opacity: 0 }}
@@ -129,12 +135,21 @@ export function VideoPortfolio() {
               <X size={28} />
             </button>
             <div className="aspect-video overflow-hidden rounded-2xl">
-              <iframe
-                src={`https://www.youtube.com/embed/${playingVideo}?autoplay=1&rel=0`}
-                allow="autoplay; encrypted-media"
-                allowFullScreen
-                className="h-full w-full"
-              />
+              {playingVideo.source === "drive" ? (
+                <iframe
+                  src={getDriveVideoEmbed(playingVideo.id)}
+                  allow="autoplay; encrypted-media"
+                  allowFullScreen
+                  className="h-full w-full"
+                />
+              ) : (
+                <iframe
+                  src={`https://www.youtube.com/embed/${playingVideo.id}?autoplay=1&rel=0`}
+                  allow="autoplay; encrypted-media"
+                  allowFullScreen
+                  className="h-full w-full"
+                />
+              )}
             </div>
           </div>
         </motion.div>

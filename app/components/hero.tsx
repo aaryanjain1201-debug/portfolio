@@ -1,47 +1,115 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useMotionTemplate, useTransform } from "framer-motion";
 import { ArrowDown, ExternalLink } from "lucide-react";
 import { siteData } from "@/data/site";
 import { MagneticButton } from "./magnetic-button";
-
-const letterVariants = {
-  hidden: { y: 100, opacity: 0 },
-  visible: (i: number) => ({
-    y: 0,
-    opacity: 1,
-    transition: {
-      delay: i * 0.05,
-      duration: 0.8,
-      ease: [0.22, 1, 0.36, 1] as [number, number, number, number],
-    },
-  }),
-};
+import { HeroGlass } from "./hero-glass";
+import { HeroCards } from "./hero-cards";
+import { useMouseParallax } from "@/lib/use-mouse-parallax";
+import { useState, useEffect, useCallback } from "react";
 
 const name = siteData.name.split("");
 
+const headlines = [
+  "AI Content Creator",
+  "3D Artist",
+  "Motion Designer",
+  "Visual Storyteller",
+];
+
+function TypewriterText() {
+  const [index, setIndex] = useState(0);
+  const [text, setText] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const tick = useCallback(() => {
+    const current = headlines[index];
+    if (!isDeleting) {
+      setText(current.slice(0, text.length + 1));
+      if (text.length === current.length) {
+        setTimeout(() => setIsDeleting(true), 2000);
+        return;
+      }
+    } else {
+      setText(current.slice(0, text.length - 1));
+      if (text.length === 0) {
+        setIsDeleting(false);
+        setIndex((prev) => (prev + 1) % headlines.length);
+        return;
+      }
+    }
+  }, [text, isDeleting, index]);
+
+  useEffect(() => {
+    const speed = isDeleting ? 40 : 80;
+    const timer = setTimeout(tick, speed);
+    return () => clearTimeout(timer);
+  }, [tick, isDeleting]);
+
+  return (
+    <span className="font-heading text-gradient">
+      {text}
+      <motion.span
+        animate={{ opacity: [1, 0] }}
+        transition={{ duration: 0.5, repeat: Infinity }}
+        className="ml-0.5 inline-block w-[2px] align-middle bg-gold"
+        style={{ height: "1em" }}
+      />
+    </span>
+  );
+}
+
 export function Hero() {
+  const { textX, textY } = useMouseParallax();
+  const textTransform = useMotionTemplate`translate(${textX}px, ${textY}px)`;
+
   return (
     <section className="relative flex min-h-screen items-center justify-center overflow-hidden px-6 text-center">
-      {/* Animated gradient orbs */}
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-1/4 top-1/4 h-[500px] w-[500px] animate-pulse rounded-full bg-gold/5 blur-[120px]" />
-        <div className="absolute bottom-1/4 right-1/4 h-[400px] w-[400px] animate-pulse rounded-full bg-amber-500/5 blur-[100px] delay-1000" />
+      {/* Video Background */}
+      <div className="absolute inset-0 z-0">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 h-full w-full object-cover opacity-15"
+          poster="https://i.ytimg.com/vi/f_jFNT7AS0I/maxresdefault.jpg"
+        >
+          <source
+            src="https://cdn.coverr.co/videos/coverr-abstract-digital-animation/1080p.mp4"
+            type="video/mp4"
+          />
+        </video>
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0A0E27]/70 via-[#0A0E27]/90 to-[#0A0E27]" />
       </div>
 
-      <div className="relative z-10 max-w-4xl">
-        {/* Animated name */}
-        <h1 className="overflow-hidden text-6xl font-extrabold tracking-tight sm:text-8xl lg:text-9xl">
+      {/* 3D Floating Project Cards */}
+      <HeroCards />
+
+      {/* Liquid Glass Shape */}
+      <HeroGlass />
+
+      {/* Content */}
+      <motion.div
+        className="relative z-10 max-w-4xl"
+        style={{ transform: textTransform }}
+      >
+        {/* Name */}
+        <h1 className="font-heading overflow-hidden text-6xl font-light tracking-[0.05em] sm:text-8xl lg:text-[9rem]">
           {name.map((letter, i) => (
             <motion.span
               key={i}
-              custom={i}
-              variants={letterVariants}
-              initial="hidden"
-              animate="visible"
+              initial={{ y: 120, opacity: 0, rotateX: -60 }}
+              animate={{ y: 0, opacity: 1, rotateX: 0 }}
+              transition={{
+                delay: 0.6 + i * 0.04,
+                duration: 0.9,
+                ease: [0.22, 1, 0.36, 1],
+              }}
               className="inline-block"
               style={{
-                textShadow: "0 0 80px rgba(212, 175, 55, 0.3)",
+                textShadow: "0 0 100px rgba(0, 217, 255, 0.15)",
               }}
             >
               {letter === " " ? "\u00A0" : letter}
@@ -49,25 +117,30 @@ export function Hero() {
           ))}
         </h1>
 
-        {/* Glowing subtitle */}
+        {/* Animated underline */}
+        <motion.div
+          initial={{ scaleX: 0, opacity: 0 }}
+          animate={{ scaleX: 1, opacity: 1 }}
+          transition={{ delay: 1.2, duration: 1, ease: [0.22, 1, 0.36, 1] }}
+          className="mx-auto mt-4 h-px w-48 origin-left bg-gradient-to-r from-transparent via-gold/40 to-transparent sm:w-64"
+        />
+
+        {/* Typewriter subtitle */}
         <motion.h2
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8, duration: 0.8 }}
-          className="relative mt-6 text-lg font-medium sm:text-xl"
+          initial={{ opacity: 0, y: 20, filter: "blur(8px)" }}
+          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          transition={{ delay: 1.4, duration: 0.8 }}
+          className="relative mt-8 text-xl font-light tracking-[0.15em] sm:text-2xl"
         >
-          <span className="bg-gradient-to-r from-gold via-amber-300 to-gold bg-clip-text text-transparent">
-            {siteData.title}
-          </span>
-          <span className="absolute -bottom-2 left-1/2 h-px w-3/4 -translate-x-1/2 bg-gradient-to-r from-transparent via-gold/50 to-transparent" />
+          <TypewriterText />
         </motion.h2>
 
         {/* Description */}
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.0, duration: 0.8 }}
-          className="mx-auto mt-8 max-w-xl leading-relaxed text-white/50"
+          transition={{ delay: 1.6, duration: 0.8 }}
+          className="mx-auto mt-8 max-w-xl text-sm leading-relaxed text-white/40 sm:text-base"
         >
           {siteData.description}
         </motion.p>
@@ -76,12 +149,12 @@ export function Hero() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.2, duration: 0.8 }}
+          transition={{ delay: 1.8, duration: 0.8 }}
           className="mt-12 flex flex-wrap items-center justify-center gap-5"
         >
           <MagneticButton
             href="#showreel"
-            className="group inline-flex items-center gap-2 rounded-full bg-gold px-8 py-4 text-sm font-bold text-black transition-all hover:shadow-[0_0_30px_rgba(212,175,55,0.4)]"
+            className="group inline-flex items-center gap-2 rounded-full bg-gold px-8 py-4 text-sm font-bold text-black transition-all hover:shadow-[0_0_40px_rgba(0,217,255,0.3)]"
           >
             View Showreel
             <ArrowDown
@@ -91,7 +164,7 @@ export function Hero() {
           </MagneticButton>
           <MagneticButton
             href="#contact"
-            className="group inline-flex items-center gap-2 rounded-full border border-gold/50 px-8 py-4 text-sm font-bold text-gold transition-all hover:border-gold hover:bg-gold/10 hover:shadow-[0_0_30px_rgba(212,175,55,0.2)]"
+            className="group inline-flex items-center gap-2 rounded-full border border-gold/30 px-8 py-4 text-sm font-bold text-gold transition-all hover:border-gold hover:bg-gold/5 hover:shadow-[0_0_30px_rgba(0,217,255,0.15)]"
           >
             Hire Me
             <ExternalLink
@@ -105,19 +178,19 @@ export function Hero() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 2, duration: 1 }}
-          className="absolute bottom-10 left-1/2 -translate-x-1/2"
+          transition={{ delay: 2.5, duration: 1 }}
+          className="absolute -bottom-20 left-1/2 -translate-x-1/2"
         >
           <motion.div
-            animate={{ y: [0, 10, 0] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="flex flex-col items-center gap-2 text-white/30"
+            animate={{ y: [0, 8, 0] }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+            className="flex flex-col items-center gap-2 text-white/20"
           >
-            <span className="text-xs tracking-widest">SCROLL</span>
-            <div className="h-10 w-[1px] bg-gradient-to-b from-gold/50 to-transparent" />
+            <span className="text-[10px] tracking-[0.3em] uppercase">Scroll</span>
+            <div className="h-8 w-px bg-gradient-to-b from-gold/30 to-transparent" />
           </motion.div>
         </motion.div>
-      </div>
+      </motion.div>
     </section>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from "react";
+import { SmoothScroll } from "@/lib/smooth-scroll";
 import { projects as defaultProjects, Project } from "@/data/projects";
 import { videos as defaultVideos } from "@/data/videos";
 import { skills as defaultSkills, SkillCategory } from "@/data/skills";
@@ -32,6 +33,8 @@ interface DataContextType {
   addVideo: (v: typeof defaultVideos[0]) => void;
   updateVideo: (id: string, v: Partial<typeof defaultVideos[0]>) => void;
   deleteVideo: (id: string) => void;
+  moveVideo: (index: number, direction: "up" | "down") => void;
+  reorderVideos: (fromIndex: number, toIndex: number) => void;
   addSkill: (s: SkillCategory) => void;
   updateSkill: (title: string, s: Partial<SkillCategory>) => void;
   deleteSkill: (title: string) => void;
@@ -70,7 +73,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
           const data = await res.json();
           if (data && Object.keys(data).length > 0) {
             if (data.projects) setProjects(data.projects);
-            if (data.videos) setVideos(data.videos);
+            if (data.videos) {
+              const stored = data.videos as typeof defaultVideos;
+              const merged = [...defaultVideos.filter(dv => !stored.some(sv => sv.id === dv.id)), ...stored];
+              setVideos(merged);
+            }
             if (data.skills) setSkills(data.skills);
             if (data.site) setSite(data.site);
             setLoading(false);
@@ -85,7 +92,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
       const s = localStorage.getItem("admin_skills");
       const d = localStorage.getItem("admin_site");
       if (p) setProjects(JSON.parse(p));
-      if (v) setVideos(JSON.parse(v));
+      if (v) {
+        const stored = JSON.parse(v) as typeof defaultVideos;
+        const merged = [...defaultVideos.filter(dv => !stored.some(sv => sv.id === dv.id)), ...stored];
+        setVideos(merged);
+      }
       if (s) setSkills(JSON.parse(s));
       if (d) setSite(JSON.parse(d));
       setLoading(false);
@@ -113,6 +124,25 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setVideos((prev) => prev.map((item) => (item.id === id ? { ...item, ...v } : item)));
   const deleteVideo = (id: string) => setVideos((prev) => prev.filter((item) => item.id !== id));
 
+  const moveVideo = (index: number, direction: "up" | "down") => {
+    setVideos((prev) => {
+      const newVideos = [...prev];
+      const targetIndex = direction === "up" ? index - 1 : index + 1;
+      if (targetIndex < 0 || targetIndex >= newVideos.length) return prev;
+      [newVideos[index], newVideos[targetIndex]] = [newVideos[targetIndex], newVideos[index]];
+      return newVideos;
+    });
+  };
+
+  const reorderVideos = (fromIndex: number, toIndex: number) => {
+    setVideos((prev) => {
+      const newVideos = [...prev];
+      const [moved] = newVideos.splice(fromIndex, 1);
+      newVideos.splice(toIndex, 0, moved);
+      return newVideos;
+    });
+  };
+
   const addSkill = (s: SkillCategory) => setSkills((prev) => [...prev, s]);
   const updateSkill = (title: string, s: Partial<SkillCategory>) =>
     setSkills((prev) => prev.map((item) => (item.title === title ? { ...item, ...s } : item)));
@@ -132,12 +162,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
       value={{
         projects, videos, skills, site, loading,
         addProject, updateProject, deleteProject,
-        addVideo, updateVideo, deleteVideo,
+        addVideo, updateVideo, deleteVideo, moveVideo, reorderVideos,
         addSkill, updateSkill, deleteSkill,
         updateSite, resetToDefaults,
       }}
     >
-      {children}
+      <SmoothScroll>{children}</SmoothScroll>
     </DataContext.Provider>
   );
 }

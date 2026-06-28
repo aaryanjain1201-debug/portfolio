@@ -58,7 +58,7 @@ export function ParticleBackground() {
         speedX: (Math.random() - 0.5) * 0.3,
         speedY: (Math.random() - 0.5) * 0.3,
         opacity: Math.random() * 0.5 + 0.1,
-        hue: Math.random() > 0.75 ? 45 : 190,
+        hue: Math.random() > 0.6 ? 265 : 188,
         vx: 0,
         vy: 0,
       };
@@ -93,10 +93,10 @@ export function ParticleBackground() {
     };
 
     const drawParticle = (p: ParticleData) => {
-      if (p.hue === 45) {
-        ctx.fillStyle = `rgba(255, 184, 0, ${p.opacity})`;
+      if (p.hue === 265) {
+        ctx.fillStyle = `rgba(124, 58, 237, ${p.opacity})`;
       } else {
-        ctx.fillStyle = `rgba(0, 217, 255, ${p.opacity})`;
+        ctx.fillStyle = `rgba(0, 245, 255, ${p.opacity})`;
       }
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
@@ -120,10 +120,10 @@ export function ParticleBackground() {
           const dist = Math.sqrt(dx * dx + dy * dy);
           if (dist < 120) {
             const alpha = 0.04 * (1 - dist / 120);
-            if (particles[i].hue === 45 || particles[j].hue === 45) {
-              ctx.strokeStyle = `rgba(255, 184, 0, ${alpha})`;
+            if (particles[i].hue === 265 || particles[j].hue === 265) {
+              ctx.strokeStyle = `rgba(124, 58, 237, ${alpha})`;
             } else {
-              ctx.strokeStyle = `rgba(0, 217, 255, ${alpha})`;
+              ctx.strokeStyle = `rgba(0, 245, 255, ${alpha})`;
             }
             ctx.lineWidth = 0.5;
             ctx.beginPath();

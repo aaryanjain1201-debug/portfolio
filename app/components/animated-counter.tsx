@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useInView } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 
 interface AnimatedCounterProps {
   target: number;
@@ -21,36 +21,47 @@ function formatNumber(num: number): string {
 
 export function AnimatedCounter({ target, suffix = "", label }: AnimatedCounterProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true });
+  // Wider margin so it reliably triggers before scrolling past
+  const isInView = useInView(ref, { once: true, margin: "-50px" });
   const [count, setCount] = useState(0);
 
   useEffect(() => {
     if (!isInView) return;
 
-    let start = 0;
-    const duration = 2000;
-    const increment = target / (duration / 16);
+    const duration = 2200;
+    const startTime = performance.now();
 
-    const timer = setInterval(() => {
-      start += increment;
-      if (start >= target) {
-        setCount(target);
-        clearInterval(timer);
+    // ease-out cubic for a premium settle
+    const tick = (now: number) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const value = Math.floor(eased * target);
+      setCount(value);
+      if (progress < 1) {
+        requestAnimationFrame(tick);
       } else {
-        setCount(Math.floor(start));
+        setCount(target);
       }
-    }, 16);
+    };
+    const raf = requestAnimationFrame(tick);
 
-    return () => clearInterval(timer);
+    return () => cancelAnimationFrame(raf);
   }, [isInView, target]);
 
   return (
-    <div ref={ref} className="text-center">
-      <div className="text-4xl font-extrabold text-gold sm:text-5xl">
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 20 }}
+      animate={isInView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.5 }}
+      className="text-center"
+    >
+      <div className="bg-gradient-to-br from-white via-white to-accent/60 bg-clip-text text-4xl font-bold text-transparent sm:text-5xl">
         {formatNumber(count)}
         {suffix}
       </div>
-      <div className="mt-2 text-sm text-white/50">{label}</div>
-    </div>
+      <div className="mt-2 text-sm tracking-wide text-white/40">{label}</div>
+    </motion.div>
   );
 }

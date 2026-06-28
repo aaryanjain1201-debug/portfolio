@@ -1,7 +1,6 @@
 "use client";
 
-import { motion, useInView } from "framer-motion";
-import { useRef } from "react";
+import { motion } from "framer-motion";
 import { AnimatedCounter } from "./animated-counter";
 
 const stats = [
@@ -12,32 +11,37 @@ const stats = [
 ];
 
 export function Stats() {
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
-
   return (
-    <section className="relative overflow-hidden px-6 py-20">
-      {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-r from-gold/5 via-gold/10 to-gold/5" />
-      <div
-        className="absolute inset-0 opacity-[0.03] grid-bg"
-      />
+    <section className="relative overflow-hidden border-y border-white/5 px-6 py-16">
+      {/* Ambient glow */}
+      <div className="pointer-events-none absolute left-1/2 top-1/2 h-40 w-3/4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent/5 blur-[80px]" />
 
       <div className="relative mx-auto max-w-6xl">
         <motion.div
-          ref={ref}
-          initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.7 }}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-50px" }}
+          variants={{
+            hidden: {},
+            visible: { transition: { staggerChildren: 0.1 } },
+          }}
           className="grid grid-cols-2 gap-8 lg:grid-cols-4"
         >
           {stats.map((stat) => (
-            <AnimatedCounter
+            <motion.div
               key={stat.label}
-              target={stat.target}
-              suffix={stat.suffix}
-              label={stat.label}
-            />
+              variants={{
+                hidden: { opacity: 0, y: 24 },
+                visible: { opacity: 1, y: 0 },
+              }}
+              className="relative"
+            >
+              <AnimatedCounter
+                target={stat.target}
+                suffix={stat.suffix}
+                label={stat.label}
+              />
+            </motion.div>
           ))}
         </motion.div>
       </div>

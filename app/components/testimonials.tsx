@@ -5,46 +5,21 @@ import { useRef, useState, useEffect } from "react";
 import { Star, Quote, ChevronLeft, ChevronRight } from "lucide-react";
 import { testimonials } from "@/data/testimonials";
 
-function TestimonialCard({
-  testimonial,
-  index,
-}: {
-  testimonial: typeof testimonials[0];
-  index: number;
-}) {
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: "-50px" });
-
+function TestimonialCard({ testimonial }: { testimonial: (typeof testimonials)[0] }) {
   return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 40 }}
-      animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ delay: index * 0.15, duration: 0.6 }}
-      className="group relative rounded-2xl bg-[#111827]/50 p-8 border border-white/5 transition-all duration-500 hover:border-gold/30 hover:shadow-[0_0_30px_rgba(0,217,255,0.08)]"
-    >
-      <Quote
-        size={40}
-        className="mb-4 text-gold/20 transition-colors group-hover:text-gold/40"
-      />
-
-      <p className="text-sm leading-relaxed text-white/60">
-        &ldquo;{testimonial.content}&rdquo;
-      </p>
-
+    <div className="group relative rounded-2xl border border-white/[0.06] bg-card/50 p-8 transition-all duration-500 hover:border-accent/20">
+      <Quote size={40} className="mb-4 text-accent/15 transition-colors group-hover:text-accent/30" />
+      <p className="text-sm leading-relaxed text-white/55">&ldquo;{testimonial.content}&rdquo;</p>
       <div className="mt-6 flex items-center gap-1">
         {Array.from({ length: testimonial.rating }).map((_, i) => (
-          <Star key={i} size={14} className="fill-accent text-accent" />
+          <Star key={i} size={14} className="fill-highlight text-highlight" />
         ))}
       </div>
-
       <div className="mt-4 border-t border-white/5 pt-4">
         <div className="font-bold">{testimonial.name}</div>
-        <div className="text-sm text-white/40">
-          {testimonial.role} — {testimonial.company}
-        </div>
+        <div className="text-sm text-white/35">{testimonial.role} — {testimonial.company}</div>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -74,58 +49,27 @@ export function Testimonials() {
 
   return (
     <section className="relative px-6 py-24">
-      <div className="mx-auto max-w-6xl">
-        <motion.div
-          ref={ref}
-          initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.7 }}
-          className="text-center"
-        >
-          <h2 className="mb-3 font-heading text-3xl font-light tracking-[0.1em] sm:text-4xl">
-            Client Reviews
-          </h2>
-          <div className="mx-auto mb-6 h-1 w-20 rounded-full bg-gradient-to-r from-gold to-accent" />
-          <p className="mx-auto max-w-2xl text-white/50">
-            What clients say about working with me
-          </p>
+      <div className="relative mx-auto max-w-6xl">
+        <motion.div ref={ref} initial={{ opacity: 0, y: 30 }} animate={isInView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.7 }} className="text-center">
+          <p className="mb-3 text-xs font-medium uppercase tracking-[0.3em] text-accent-400">Testimonials</p>
+          <h2 className="mb-4 font-heading text-3xl font-light tracking-[0.1em] sm:text-5xl">Client Reviews</h2>
+          <p className="mx-auto max-w-2xl text-sm text-white/40">What clients say about working with me</p>
+          <div className="mx-auto mt-4 h-px w-16 bg-gradient-to-r from-accent to-transparent" />
         </motion.div>
-
         <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           <AnimatePresence mode="popLayout">
-            {visible.map((testimonial, i) => (
-              <motion.div
-                key={testimonial.name}
-                layout
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.4 }}
-              >
-                <TestimonialCard testimonial={testimonial} index={i} />
+            {visible.map((testimonial) => (
+              <motion.div key={testimonial.name} layout initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.4 }}>
+                <TestimonialCard testimonial={testimonial} />
               </motion.div>
             ))}
           </AnimatePresence>
         </div>
-
-        {/* Pagination */}
         {totalPages > 1 && (
           <div className="mt-8 flex items-center justify-center gap-4">
-            <button
-              onClick={() => setPage((p) => (p - 1 + totalPages) % totalPages)}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-white/50 transition-all hover:border-gold/30 hover:text-gold"
-            >
-              <ChevronLeft size={16} />
-            </button>
-            <span className="text-sm text-white/40">
-              {page + 1} / {totalPages}
-            </span>
-            <button
-              onClick={() => setPage((p) => (p + 1) % totalPages)}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-white/50 transition-all hover:border-gold/30 hover:text-gold"
-            >
-              <ChevronRight size={16} />
-            </button>
+            <button onClick={() => setPage((p) => (p - 1 + totalPages) % totalPages)} className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-white/50 transition-all hover:border-accent/30 hover:text-accent-400"><ChevronLeft size={16} /></button>
+            <span className="text-sm text-white/35">{page + 1} / {totalPages}</span>
+            <button onClick={() => setPage((p) => (p + 1) % totalPages)} className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-white/50 transition-all hover:border-accent/30 hover:text-accent-400"><ChevronRight size={16} /></button>
           </div>
         )}
       </div>

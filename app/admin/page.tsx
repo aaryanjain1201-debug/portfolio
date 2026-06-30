@@ -1,13 +1,20 @@
 "use client";
 
 import { useData } from "@/app/providers";
-import { FolderOpen, Video, Wrench, Settings } from "lucide-react";
+import { FolderOpen, Video, Wrench, Settings, Bot } from "lucide-react";
 import Link from "next/link";
 
 export default function AdminDashboard() {
   const { projects, videos, skills } = useData();
 
   const cards = [
+    {
+      label: "AI Client Agent",
+      count: null,
+      icon: Bot,
+      href: "/admin/agent",
+      color: "from-gold/20 to-cyan-600/5",
+    },
     {
       label: "Projects",
       count: projects.length,
@@ -43,7 +50,7 @@ export default function AdminDashboard() {
       <h1 className="text-3xl font-extrabold">Dashboard</h1>
       <p className="mt-2 text-white/50">Manage your portfolio content</p>
 
-      <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
         {cards.map((card) => {
           const Icon = card.icon;
           return (

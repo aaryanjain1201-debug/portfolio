@@ -18,54 +18,65 @@ export function Showreel() {
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.7 }}
         >
-          <h2 className="mb-3 font-heading text-3xl font-light tracking-[0.1em] sm:text-4xl">Showreel</h2>
-          <div className="mb-12 h-1 w-20 rounded-full bg-gradient-to-r from-gold to-accent" />
+          <p className="mb-3 text-xs font-medium uppercase tracking-[0.3em] text-accent-400">
+            Highlight Reel
+          </p>
+          <h2 className="mb-4 font-heading text-3xl font-light tracking-[0.1em] sm:text-5xl">
+            Showreel
+          </h2>
+          <div className="mt-4 h-px w-16 bg-gradient-to-r from-accent to-transparent" />
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ delay: 0.2, duration: 0.8 }}
-          className="group relative overflow-hidden rounded-2xl border border-white/5 bg-[#111827]"
+          initial={{ opacity: 0, y: 50, scale: 0.97 }}
+          animate={isInView ? { opacity: 1, y: 0, scale: 1 } : {}}
+          transition={{ delay: 0.2, duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+          className="group relative mt-12 overflow-hidden rounded-2xl border border-white/[0.06] bg-card"
         >
           <div className="relative aspect-video">
             <img
               src="https://i.ytimg.com/vi/f_jFNT7AS0I/maxresdefault.jpg"
               alt="Showreel"
-              className="h-full w-full object-cover"
+              className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
             />
-            <div className="absolute inset-0 bg-black/40 transition-opacity group-hover:opacity-0" />
+            <div className="absolute inset-0 bg-black/30 transition-opacity duration-500 group-hover:opacity-0" />
 
             <div className="absolute inset-0 flex items-center justify-center">
-              <motion.div
+              <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setIsPlaying(true)}
-                className="flex h-20 w-20 cursor-pointer items-center justify-center rounded-full bg-gold/90 text-black opacity-0 transition-all duration-500 group-hover:opacity-100 group-hover:scale-100 scale-75 hover:shadow-[0_0_40px_rgba(0,217,255,0.4)]"
+                className="flex h-20 w-20 cursor-pointer items-center justify-center rounded-full bg-accent/90 text-white opacity-0 transition-all duration-500 group-hover:opacity-100 group-hover:scale-100 scale-75 hover:shadow-[0_0_50px_rgba(124,58,237,0.5)]"
               >
                 <Play size={32} className="ml-1" />
-              </motion.div>
+              </motion.button>
             </div>
+          </div>
+
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-6">
+            <p className="text-xs font-medium tracking-wider text-white/40 uppercase">
+              2024 — Cinematic 3D + Motion Reel
+            </p>
           </div>
         </motion.div>
       </div>
 
-      {/* Video Modal */}
       {isPlaying && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/90 backdrop-blur-sm"
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 backdrop-blur-sm"
           onClick={() => setIsPlaying(false)}
         >
-          <div className="relative w-full max-w-4xl px-4">
+          <div className="relative w-full max-w-5xl px-4">
             <button
               onClick={() => setIsPlaying(false)}
-              className="absolute -top-12 right-0 text-white/60 transition-colors hover:text-white"
+              className="absolute -top-12 right-4 text-white/50 transition-colors hover:text-white"
             >
               <X size={28} />
             </button>
-            <div className="aspect-video overflow-hidden rounded-2xl">
+            <div className="aspect-video overflow-hidden rounded-2xl ring-1 ring-white/10">
               <iframe
                 src="https://www.youtube.com/embed/f_jFNT7AS0I?autoplay=1&rel=0"
                 allow="autoplay; encrypted-media"

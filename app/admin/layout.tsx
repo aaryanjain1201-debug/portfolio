@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 import {
   LayoutDashboard,
   FolderOpen,
@@ -11,11 +12,12 @@ import {
   ArrowLeft,
   Menu,
   X,
+  Bot,
 } from "lucide-react";
-import { useState } from "react";
 
 const navItems = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
+  { label: "AI Agent", href: "/admin/agent", icon: Bot },
   { label: "Projects", href: "/admin/projects", icon: FolderOpen },
   { label: "Videos", href: "/admin/videos", icon: Video },
   { label: "Skills", href: "/admin/skills", icon: Wrench },

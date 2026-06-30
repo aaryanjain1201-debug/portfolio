@@ -19,6 +19,10 @@ import {
   Building2,
   ChevronDown,
   X,
+  Zap,
+  Clock,
+  AlertCircle,
+  CheckCircle2,
 } from "lucide-react";
 
 interface Lead {
@@ -51,6 +55,15 @@ interface LeadSource {
   avgBudget: string;
 }
 
+interface OutreachStats {
+  todaySent: number;
+  weekSent: number;
+  totalSent: number;
+  totalFailed: number;
+  recentLogs: { leadId: string; email: string; subject: string; status: string; sentAt: string; error?: string }[];
+  smtp: { success: boolean; message: string };
+}
+
 const statusColors: Record<string, string> = {
   new: "bg-blue-500/20 text-blue-400",
   contacted: "bg-yellow-500/20 text-yellow-400",
@@ -63,7 +76,7 @@ export default function AgentDashboard() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [sources, setSources] = useState<LeadSource[]>([]);
-  const [activeTab, setActiveTab] = useState<"leads" | "templates" | "sources" | "compose">("leads");
+  const [activeTab, setActiveTab] = useState<"leads" | "templates" | "sources" | "compose" | "outreach">("leads");
   const [showAddLead, setShowAddLead] = useState(false);
   const [showCompose, setShowCompose] = useState(false);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
@@ -72,6 +85,11 @@ export default function AgentDashboard() {
   const [copied, setCopied] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [outreachStats, setOutreachStats] = useState<OutreachStats | null>(null);
+  const [outreachLoading, setOutreachLoading] = useState(false);
+  const [outreachResult, setOutreachResult] = useState<string | null>(null);
+  const [testEmail, setTestEmail] = useState("");
+  const [testResult, setTestResult] = useState<string | null>(null);
 
   // Form states
   const [form, setForm] = useState({
@@ -88,6 +106,7 @@ export default function AgentDashboard() {
     fetchLeads();
     fetchTemplates();
     fetchSources();
+    fetchOutreachStats();
   }, []);
 
   const fetchLeads = async () => {
@@ -106,6 +125,51 @@ export default function AgentDashboard() {
     const res = await fetch("/api/leads?type=sources");
     const data = await res.json();
     setSources(data);
+  };
+
+  const fetchOutreachStats = async () => {
+    const res = await fetch("/api/outreach?action=stats");
+    const data = await res.json();
+    setOutreachStats(data);
+  };
+
+  const runAutoOutreach = async () => {
+    if (!confirm("Send emails to the best leads? This will send actual emails.")) return;
+    setOutreachLoading(true);
+    setOutreachResult(null);
+    try {
+      const res = await fetch("/api/outreach", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "run" }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setOutreachResult(`✅ Sent: ${data.sent} | ❌ Failed: ${data.failed} | ⏭️ Skipped: ${data.skipped}`);
+        fetchOutreachStats();
+      } else {
+        setOutreachResult(`❌ ${data.message}`);
+      }
+    } catch (e) {
+      setOutreachResult("❌ Failed to run outreach");
+    }
+    setOutreachLoading(false);
+  };
+
+  const sendTestEmail = async () => {
+    if (!testEmail) return;
+    setTestResult(null);
+    try {
+      const res = await fetch("/api/outreach", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "test-email", to: testEmail }),
+      });
+      const data = await res.json();
+      setTestResult(data.success ? "✅ Test email sent!" : `❌ ${data.message}`);
+    } catch (e) {
+      setTestResult("❌ Failed to send test email");
+    }
   };
 
   const addLead = async () => {
@@ -206,7 +270,7 @@ export default function AgentDashboard() {
 
         {/* Tabs */}
         <div className="mb-6 flex gap-2 border-b border-white/5 pb-4">
-          {(["leads", "templates", "sources", "compose"] as const).map((tab) => (
+          {(["leads", "templates", "sources", "compose", "outreach"] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -453,6 +517,156 @@ export default function AgentDashboard() {
                   </a>
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* OUTREACH TAB */}
+        {activeTab === "outreach" && (
+          <div className="space-y-6">
+            {/* SMTP Status */}
+            <div className="rounded-xl border border-white/5 bg-[#111827] p-6">
+              <h3 className="font-bold">Email Setup Status</h3>
+              <div className="mt-3 flex items-center gap-3">
+                {outreachStats?.smtp?.success ? (
+                  <span className="flex items-center gap-2 text-sm text-green-400">
+                    <CheckCircle2 size={16} /> SMTP Connected
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-2 text-sm text-red-400">
+                    <AlertCircle size={16} /> SMTP Not Connected — Set env vars first
+                  </span>
+                )}
+              </div>
+              <div className="mt-4 rounded-lg bg-white/5 p-4">
+                <p className="text-xs font-bold text-white/60">Required Environment Variables:</p>
+                <pre className="mt-2 overflow-x-auto text-[11px] text-gold/70">
+{`# Gmail (recommended for starting out)
+EMAIL_PROVIDER=gmail
+GMAIL_USER=aj929360@gmail.com
+GMAIL_APP_PASSWORD=xxxx-xxxx-xxxx-xxxx
+
+# OR SendGrid
+EMAIL_PROVIDER=sendgrid
+SENDGRID_API_KEY=SG.xxxxx
+
+# OR Resend
+EMAIL_PROVIDER=resend
+RESEND_API_KEY=re_xxxxx`}
+                </pre>
+                <p className="mt-2 text-[10px] text-white/30">
+                  Gmail: Go to myaccount.google.com → Security → App Passwords → Generate for "Mail"
+                </p>
+              </div>
+
+              {/* Test Email */}
+              <div className="mt-4 flex gap-3">
+                <input
+                  value={testEmail}
+                  onChange={(e) => setTestEmail(e.target.value)}
+                  placeholder="test@email.com"
+                  className="flex-1 rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none focus:border-gold"
+                />
+                <button
+                  onClick={sendTestEmail}
+                  disabled={!testEmail}
+                  className="flex items-center gap-2 rounded-lg bg-white/10 px-4 py-2.5 text-sm font-medium text-white hover:bg-white/20 disabled:opacity-40"
+                >
+                  <Mail size={14} /> Test Email
+                </button>
+              </div>
+              {testResult && (
+                <p className="mt-2 text-sm">{testResult}</p>
+              )}
+            </div>
+
+            {/* Outreach Stats */}
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+              {[
+                { label: "Today", value: outreachStats?.todaySent ?? 0, limit: "10/day", icon: Clock },
+                { label: "This Week", value: outreachStats?.weekSent ?? 0, limit: "50/week", icon: BarChart3 },
+                { label: "Total Sent", value: outreachStats?.totalSent ?? 0, limit: "all time", icon: Send },
+                { label: "Failed", value: outreachStats?.totalFailed ?? 0, limit: "check logs", icon: AlertCircle },
+              ].map((stat) => (
+                <div key={stat.label} className="rounded-xl border border-white/5 bg-[#111827] p-4">
+                  <div className="flex items-center gap-2">
+                    <stat.icon size={14} className="text-gold" />
+                    <span className="text-xs text-white/40">{stat.label}</span>
+                  </div>
+                  <div className="mt-2 text-2xl font-bold text-gold">{stat.value}</div>
+                  <div className="text-[10px] text-white/30">{stat.limit}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Run Outreach Button */}
+            <div className="rounded-xl border border-gold/20 bg-gold/5 p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-bold">Auto Outreach</h3>
+                  <p className="mt-1 text-sm text-white/50">
+                    Automatically sends personalized emails to your best leads (score ≥ 6)
+                  </p>
+                  <p className="text-xs text-white/30">
+                    Rate: 10 emails/day max • 2 sec delay between emails • Auto-selects best templates
+                  </p>
+                </div>
+                <button
+                  onClick={runAutoOutreach}
+                  disabled={outreachLoading}
+                  className="flex items-center gap-2 rounded-lg bg-gold px-6 py-3 text-sm font-bold text-black transition-all hover:shadow-[0_0_30px_rgba(0,217,255,0.3)] disabled:opacity-50"
+                >
+                  <Zap size={16} className={outreachLoading ? "animate-pulse" : ""} />
+                  {outreachLoading ? "Sending..." : "Run Outreach Now"}
+                </button>
+              </div>
+              {outreachResult && (
+                <div className="mt-4 rounded-lg bg-white/5 p-3 text-sm">{outreachResult}</div>
+              )}
+            </div>
+
+            {/* Recent Outreach Logs */}
+            <div className="rounded-xl border border-white/5 bg-[#111827] p-6">
+              <h3 className="font-bold">Recent Outreach Log</h3>
+              <div className="mt-4 space-y-2">
+                {(!outreachStats?.recentLogs || outreachStats.recentLogs.length === 0) && (
+                  <p className="text-sm text-white/40">No outreach history yet. Run your first outreach!</p>
+                )}
+                {outreachStats?.recentLogs?.map((log, i) => (
+                  <div key={i} className="flex items-center gap-3 rounded-lg bg-white/[0.02] p-3">
+                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                      log.status === "sent" ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"
+                    }`}>
+                      {log.status}
+                    </span>
+                    <span className="text-sm">{log.email}</span>
+                    <span className="text-xs text-white/30 ml-auto">
+                      {new Date(log.sentAt).toLocaleString()}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* How It Works */}
+            <div className="rounded-xl border border-white/5 bg-[#111827] p-6">
+              <h3 className="font-bold">How Auto Outreach Works</h3>
+              <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {[
+                  { step: "1", title: "Lead Scoring", desc: "Selects leads with score ≥ 6, prioritizes new > contacted > replied" },
+                  { step: "2", title: "Template Match", desc: "Matches industry to the best cold email template automatically" },
+                  { step: "3", title: "Personalize", desc: "Inserts company name, contact name, and industry into email" },
+                  { step: "4", title: "Send & Track", desc: "Sends via SMTP with 2s delay, logs status, updates lead record" },
+                ].map((item) => (
+                  <div key={item.step} className="rounded-lg bg-white/[0.02] p-4">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gold/10 text-gold text-sm font-bold">
+                      {item.step}
+                    </div>
+                    <h4 className="mt-3 text-sm font-bold">{item.title}</h4>
+                    <p className="mt-1 text-xs text-white/40">{item.desc}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}
